@@ -37,7 +37,7 @@ def detect_hands(img):
     results = hands.process(image_rgb)
 
     if results.multi_hand_landmarks :
-
+            
         mp_drawing.draw_landmarks(image_rgb,results.multi_hand_landmarks[0], mp.solutions.hands.HAND_CONNECTIONS)
         image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
         return image_bgr
