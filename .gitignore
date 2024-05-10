@@ -1,5 +1,7 @@
 __pycache__/
 .venv/
+.vscode/
+short-test/
 asl-dataset/
 asl_cnn_v2.py
 self-asl-dataset/
