@@ -4,18 +4,20 @@ from tensorflow.keras.models import load_model
 import mediapipe as mp
 
 
+
+
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5)
 mp_drawing = mp.solutions.drawing_utils
 
-model = load_model('gray_model.keras')  # Ensure this path is correct
+model = load_model('testing.keras')  # Ensure this path is correct
 
 def preprocess_image_for_prediction(img, target_size=(150, 150)):
     """
     Preprocess the input image for prediction.
     """
     if img.ndim > 2:
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     img = cv2.resize(img, target_size)
     img = img.astype('float32') / 255.0
     img = np.expand_dims(img, axis=-1)
@@ -37,7 +39,7 @@ def detect_hands(img):
     results = hands.process(image_rgb)
 
     if results.multi_hand_landmarks :
-            
+
         mp_drawing.draw_landmarks(image_rgb,results.multi_hand_landmarks[0], mp.solutions.hands.HAND_CONNECTIONS)
         image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
         return image_bgr
@@ -72,23 +74,23 @@ def main():
         if not ret:
             break
         if ret :
-            frame_detect, max_landmark, min_landmark = detect_hands(frame)
+            frame_detect = detect_hands(frame)
 
 
         
 
 
 
-        cv2.rectangle(frame, (x_start, y_start), (x_start + roi_width, y_start + roi_height), (0, 255, 0), 2)
-        roi = frame[y_start:y_start + roi_height, x_start:x_start + roi_width]
+        cv2.rectangle(frame_detect, (x_start, y_start), (x_start + roi_width, y_start + roi_height), (0, 255, 0), 2)
+        roi = frame_detect[y_start:y_start + roi_height, x_start:x_start + roi_width]
 
         pred_class, pred_certainty = predict_sign_language(roi)
 
         label = chr(pred_class + 65)
 
-        cv2.putText(frame, f'Pred: {label}, Cert: {pred_certainty:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(frame_detect, f'Pred: {label}, Cert: {pred_certainty:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
-        cv2.imshow('Sign Language Prediction', frame)
+        cv2.imshow('Sign Language Prediction', frame_detect)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break

@@ -6,6 +6,8 @@ from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
 
+# ASL DATASET - RGB
+# https://www.kaggle.com/datasets/grassknoted/asl-alphabet
 
 # Define data augmentation options
 datagen = ImageDataGenerator(
@@ -20,9 +22,8 @@ datagen = ImageDataGenerator(
 
 # Flowing data from directory
 train_generator = datagen.flow_from_directory(
-    'asl-dataset\\train',
+    'short-train',
     target_size=(150, 150),
-    color_mode = "grayscale",
     batch_size=32,
     class_mode='sparse'
 )
@@ -30,9 +31,8 @@ train_generator = datagen.flow_from_directory(
 
 
 test_generator = datagen.flow_from_directory(
-    'asl-dataset\\val',
+    'short-test',
     target_size=(150, 150),
-    color_mode = "grayscale",
     batch_size=32,
     class_mode='sparse'
 )
@@ -41,27 +41,27 @@ test_generator = datagen.flow_from_directory(
 # Define your model
 model = Sequential()
 
-model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu', input_shape=(150, 150, 1)))
+model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu', input_shape=(150, 150, 3)))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(filters=128, kernel_size=(3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-#model.add(Dropout(0.25))
+model.add(Dropout(0.25))
 
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
-#model.add(Dropout(0.5))
+model.add(Dropout(0.5))
 
-model.add(Dense(24, activation='softmax'))
+model.add(Dense(11, activation='softmax'))
 
 # Compile the model
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model using the training generator
-model.fit(train_generator, epochs=4, validation_data=test_generator)
+model.fit(train_generator, epochs=100, validation_data=test_generator)
 
 # Evaluate the model using the testing generator
-models.save_model(model,"gray_model.keras")
-test_loss, test_accuracy = model.evaluate(test_generator)
+models.save_model(model,"testing.keras")
+test_loss, test_accuracy = model.evaluate(test_generator)   
 print('Test accuracy:', test_accuracy)

@@ -1,0 +1,56 @@
+import os
+import cv2
+import mediapipe as mp
+
+# Function to draw hand landmarks and connections on an image
+def draw_hand_landmarks(image, landmarks):
+    # Draw landmarks
+    for landmark in landmarks.landmark:
+        x, y = int(landmark.x * image.shape[1]), int(landmark.y * image.shape[0])
+        cv2.circle(image, (x, y), 10, (255,0,0), -1)
+    
+    # Draw connections
+    connections = mp.solutions.hands.HAND_CONNECTIONS
+    for connection in connections:
+        idx1, idx2 = connection
+        x1, y1 = int(landmarks.landmark[idx1].x * image.shape[1]), int(landmarks.landmark[idx1].y * image.shape[0])
+        x2, y2 = int(landmarks.landmark[idx2].x * image.shape[1]), int(landmarks.landmark[idx2].y * image.shape[0])
+        cv2.line(image, (x1, y1), (x2, y2), (0,255,0), 2)
+
+# Function to process images in a folder
+def process_folder(folder_path):
+    # Initialize MediaPipe hands
+    mp_hands = mp.solutions.hands.Hands(static_image_mode=False, max_num_hands=1)
+    
+    # Iterate through images in the folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".jpg") or filename.endswith(".png"):
+            image_path = os.path.join(folder_path, filename)
+            # Read the image
+            image = cv2.imread(image_path)
+            # Convert image to RGB
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            # Detect hand landmarks
+            results = mp_hands.process(image_rgb)
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    # Draw landmarks and connections
+                    draw_hand_landmarks(image, hand_landmarks)
+            # Save the annotated image
+            cv2.imwrite(image_path, image)
+    
+    # Release MediaPipe hands
+    mp_hands.close()
+
+# Main function
+def main():
+    folder_path = "short-test"  # Replace with the path to your folder containing subfolders with images
+    # Iterate through subfolders
+    for subfolder in os.listdir(folder_path):
+        subfolder_path = os.path.join(folder_path, subfolder)
+        if os.path.isdir(subfolder_path):
+            # Process images in the subfolder
+            process_folder(subfolder_path)
+
+if __name__ == "__main__":
+    main()

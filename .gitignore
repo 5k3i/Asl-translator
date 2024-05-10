@@ -2,4 +2,12 @@ __pycache__/
 .venv/
 asl-dataset/
 asl_cnn_v2.py
-
+self-asl-dataset/
+short-test/
+short-train/
+Test-Folder/
+train-folder/
+model.keras
+gray_model.keras
+rgb_model.keras
+testing.keras
