@@ -22,20 +22,34 @@ datagen = ImageDataGenerator(
 
 # Flowing data from directory
 train_generator = datagen.flow_from_directory(
-    'short-train',
+    'folder',
     target_size=(150, 150),
-    batch_size=32,
+    batch_size=16,
     class_mode='sparse'
 )
 
 
 
 test_generator = datagen.flow_from_directory(
-    'short-test',
+    'folder-test',
     target_size=(150, 150),
-    batch_size=32,
+    batch_size=16,
     class_mode='sparse'
 )
+
+# def record_video(camera, path="train_data"):
+#     f, t = camera.read()
+#     counter = 0
+
+#     for letter in "ABCDE":
+#         fname = f"{letter}_{counter}.jpg"
+        
+#         for i in range(150):
+#             cv2.imwrite(frame, fname)
+
+#         counter += 1
+
+    
 
 
 # Define your model
@@ -53,15 +67,17 @@ model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(11, activation='softmax'))
+model.add(Dense(15, activation='softmax'))
 
 # Compile the model
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model using the training generator
-model.fit(train_generator, epochs=100, validation_data=test_generator)
+# A - E, 350 frames takes 20 seconds / epoch
+
+model.fit(train_generator, epochs=50, validation_data=test_generator)
 
 # Evaluate the model using the testing generator
-models.save_model(model,"testing.keras")
+models.save_model(model,"50epochtesting.keras")
 test_loss, test_accuracy = model.evaluate(test_generator)   
 print('Test accuracy:', test_accuracy)

@@ -44,7 +44,7 @@ def process_folder(folder_path):
 
 # Main function
 def main():
-    folder_path = "short-test"  # Replace with the path to your folder containing subfolders with images
+    folder_path = "final-train-data"  # Replace with the path to your folder containing subfolders with images
     # Iterate through subfolders
     for subfolder in os.listdir(folder_path):
         subfolder_path = os.path.join(folder_path, subfolder)

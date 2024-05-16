@@ -2,15 +2,15 @@ import cv2
 import numpy as np
 from tensorflow.keras.models import load_model
 import mediapipe as mp
+import matplotlib.pyplot as plt
+import sys
 
 
+# mp_hands = mp.solutions.hands
+# hands = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5)
+# mp_drawing = mp.solutions.drawing_utils
 
-
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5)
-mp_drawing = mp.solutions.drawing_utils
-
-model = load_model('testing.keras')  # Ensure this path is correct
+model = load_model('75epochtest.keras')  # Ensure this path is correct
 
 def preprocess_image_for_prediction(img, target_size=(150, 150)):
     """
@@ -39,25 +39,34 @@ def detect_hands(img):
     results = hands.process(image_rgb)
 
     if results.multi_hand_landmarks :
-
-        mp_drawing.draw_landmarks(image_rgb,results.multi_hand_landmarks[0], mp.solutions.hands.HAND_CONNECTIONS)
+        # Unhash for landmarks 
+        #mp_drawing.draw_landmarks(image_rgb,results.multi_hand_landmarks[0], mp.solutions.hands.HAND_CONNECTIONS)
         image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
         return image_bgr
     return img
 
 
-def draw_landmarks(img,landmarks) :
-    for i in range(len(landmarks.landmark)):
-        h,w,c = img.shape
-        cx, cy = int(landmarks.landmark[i].x * w), int(landmarks.landmark[i].y * h)
+# def draw_landmarks(img,landmarks) :
+#     for i in range(len(landmarks.landmark)):
+#         h,w,c = img.shape
+#         cx, cy = int(landmarks.landmark[i].x * w), int(landmarks.landmark[i].y * h)
 
-        cv2.circle(img,(cx,cy), 10, (255,0,0), -1)
+#         cv2.circle(img,(cx,cy), 10, (255,0,0), -1)
 
-        if i < len(landmarks.landmark) - 1 :
-            next_cx, next_cy = int(landmarks.landmark[i+1].x * w), int(landmarks.landmark[i+1].y * h)
-            cv2.line(img,(cx,cy),(next_cx, next_cy), (0,255,0), 2)
+#         if i < len(landmarks.landmark) - 1 :
+#             next_cx, next_cy = int(landmarks.landmark[i+1].x * w), int(landmarks.landmark[i+1].y * h)
+#             cv2.line(img,(cx,cy),(next_cx, next_cy), (0,255,0), 2)
 
+# def plot():
 
+#     history = model.history
+#     plt.plot(history.history['accuracy'])
+#     plt.plot(history.history['val_accuracy'])
+#     plt.title('Model Accuracy')
+#     plt.xlabel('Epoch')
+#     plt.ylabel('Accuracy')
+#     plt.legend(['Train', 'Validation'], loc='upper left')
+#     plt.show()
 
 def main():
     cam_capture = cv2.VideoCapture(0)
@@ -82,9 +91,10 @@ def main():
 
 
         cv2.rectangle(frame_detect, (x_start, y_start), (x_start + roi_width, y_start + roi_height), (0, 255, 0), 2)
-        roi = frame_detect[y_start:y_start + roi_height, x_start:x_start + roi_width]
+        roi = frame_detect[y_start:y_start + roi_height+100, x_start:x_start + roi_width+100]
 
         pred_class, pred_certainty = predict_sign_language(roi)
+
 
         label = chr(pred_class + 65)
 
@@ -98,5 +108,12 @@ def main():
     cam_capture.release()
     cv2.destroyAllWindows()
 
-if __name__ == '__main__':
+
+if len(sys.argv) >= 2:
+    if sys.argv[1] == "--plot":
+        plot()
+else:
     main()
+
+# if __name__ == '__main__':
+#     plot()
