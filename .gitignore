@@ -4,5 +4,6 @@ __pycache__/
 *-*/
 *-*-*/
 *_*/
-*.keras
+25*.keras
+200*.keras
 folder/
