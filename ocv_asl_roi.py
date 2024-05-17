@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import sys
 
 
-# mp_hands = mp.solutions.hands
-# hands = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5)
-# mp_drawing = mp.solutions.drawing_utils
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands(max_num_hands=1,min_detection_confidence=0.5)
+mp_drawing = mp.solutions.drawing_utils
 
 model = load_model('75epochtest.keras')  # Ensure this path is correct
 
@@ -46,27 +46,27 @@ def detect_hands(img):
     return img
 
 
-# def draw_landmarks(img,landmarks) :
-#     for i in range(len(landmarks.landmark)):
-#         h,w,c = img.shape
-#         cx, cy = int(landmarks.landmark[i].x * w), int(landmarks.landmark[i].y * h)
+def draw_landmarks(img,landmarks) :
+    for i in range(len(landmarks.landmark)):
+        h,w,c = img.shape
+        cx, cy = int(landmarks.landmark[i].x * w), int(landmarks.landmark[i].y * h)
 
-#         cv2.circle(img,(cx,cy), 10, (255,0,0), -1)
+        cv2.circle(img,(cx,cy), 10, (255,0,0), -1)
 
-#         if i < len(landmarks.landmark) - 1 :
-#             next_cx, next_cy = int(landmarks.landmark[i+1].x * w), int(landmarks.landmark[i+1].y * h)
-#             cv2.line(img,(cx,cy),(next_cx, next_cy), (0,255,0), 2)
+        if i < len(landmarks.landmark) - 1 :
+            next_cx, next_cy = int(landmarks.landmark[i+1].x * w), int(landmarks.landmark[i+1].y * h)
+            cv2.line(img,(cx,cy),(next_cx, next_cy), (0,255,0), 2)
 
-# def plot():
+def plot():
 
-#     history = model.history
-#     plt.plot(history.history['accuracy'])
-#     plt.plot(history.history['val_accuracy'])
-#     plt.title('Model Accuracy')
-#     plt.xlabel('Epoch')
-#     plt.ylabel('Accuracy')
-#     plt.legend(['Train', 'Validation'], loc='upper left')
-#     plt.show()
+    history = model.history
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
 
 def main():
     cam_capture = cv2.VideoCapture(0)

@@ -75,7 +75,7 @@ model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=
 # Train the model using the training generator
 # A - E, 350 frames takes 20 seconds / epoch
 
-model.fit(train_generator, epochs=50, validation_data=test_generator)
+model.fit(train_generator, epochs=200, validation_data=test_generator)
 
 # Evaluate the model using the testing generator
 models.save_model(model,"50epochtesting.keras")

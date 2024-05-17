@@ -4,8 +4,10 @@ import os, pprint
 from PIL import ImageTk, Image
 
 import cv2 as cv, numpy as np
-from cv2.typing import *
 from keras import Sequential, models
+
+
+log = lambda _type, *verbatim: print(f"[{_type}]", verbatim)
 
 class CButton(tk.Button):
     def __init__(self, master: tk.Tk, **kwargs):
@@ -23,20 +25,22 @@ class ASLLabel(tk.Label):
             font=("helvetica", 32, "bold"),
             fg="black"
         )
+
 # Interface class contains buttons under camera
 class Interface(tk.Frame):
-    def __init__(self, master: tk.Tk, c_read: tuple[bool, MatLike]):
+    def __init__(self, master: tk.Tk, cap: cv.VideoCapture):
         super().__init__(master=master)
         # camera will be used for button functionality
-        self.t, self.f = c_read
+        self.cap = cap
         self.predictions = []
-        self.model = models.load_model("75epochtest.keras")
+        self.model = models.load_model("200epochtesting.keras")
         self.alphabet = "ABCDEFGHIJKLMNO"
-        self.p_l = ASLLabel(self)
-        self.p_l.grid(column=0, row=2 ,columnspan=3)
 
 
         self.str_pred_label = tk.StringVar(self, value=None)
+
+        self.p_l = ASLLabel(self, textvariable=self.str_pred_label)
+        self.p_l.grid(column=0, row=2 ,columnspan=3)
 
         # interface buttons
         # starts prediction
@@ -49,25 +53,37 @@ class Interface(tk.Frame):
             self.p_l = ASLLabel(self, textvariable=self.str_pred_label, fg=None)
         
     def capture(self) -> None:
-        len_fileregx = len([file for file in os.listdir("./") if "image_" in file])
-
-        cv.imwrite(f"image_{len_fileregx}", self.f)
+        t, f = self.cap.read()
+        if t:
+            len_fileregx = len([file for file in os.listdir("./") if "image_" in file])
+            cv.imwrite(f"image_{len_fileregx}", f)
+        else:
+            log("capture", "camera could not be captured")
 
     
     def predict(self) -> None:
         # assert self.t == Fals, "Camera feed not active"
+        t, f = self.cap.read()
 
-        print("Before frame: ", self.f.shape)
-        self._preprocess_image()
 
-        predictions = self.model.predict(self.f)
-        pprint.pprint(predictions, indent=2)
+        log("predict", f"pre-processed image: {f}")
+        f = self._preprocess_image(frame=f)
+
+
+        predictions = self.model.predict(f)        # ex: throw up A
+                                                    # A: 100%
+                                                    # B: 30%
+                                                    # C: 10%
+                                                    # ....
+                                                    # E: 0.001%
+
         pred_class = np.argmax(predictions, axis=1)[0]
         # frame
-        pred_certainty = np.max(predictions)
+        pred_certainty = round(np.max(predictions) * 100, 2)
+        log("predict", "pred_certainty: ")
         self.predictions.append(pred_certainty * 100)
-        print(f"self.alphabet: {chr(pred_class+65)}")
-        print(f"pred_class: {pred_class}")
+        log("predict", f"self.alphabet: {chr(pred_class+65)}")
+        log("predict", f"pred_class: {pred_class}")
 
         # certainty_label = ASLLabel(self, textvariable=self.str_pred_label, fg=None)
         # certainty_label.grid(column=0, row=2, columnspan=3)
@@ -77,19 +93,24 @@ class Interface(tk.Frame):
                 self.p_l.configure(fg="green")
             else:
                 self.p_l.configure(fg="red")
-            
-        self.str_pred_label.set(f"Letter: {chr(pred_class+65)}, Perc: {pred_certainty * 100}%")
+        
+        if pred_certainty >= 75:
+            self.str_pred_label.set(f"Letter: {chr(pred_class+65)}, Perc: {pred_certainty}%")
+        else:
+            self.str_pred_label.set(f"None")
 
     # changes self.frame (f)
-    def _preprocess_image(self, resize_resolution=(150, 150)) -> None:
-        if self.f.ndim > 2:
-            self.f = cv.cvtColor(self.f, cv.COLOR_RGB2BGR)
-        self.f = cv.resize(self.f, resize_resolution)
-        self.f = self.f.astype('float32') / 255.0
-        self.f = np.expand_dims(self.f, axis=-1)
-        self.f = np.expand_dims(self.f, axis=0)
+    def _preprocess_image(self, frame: cv.typing.MatLike ,resize_resolution=(150, 150)) -> cv.typing.MatLike:
+        if frame.ndim > 2:
+            frame = cv.cvtColor(frame, cv.COLOR_RGB2BGR)
+        frame = cv.resize(frame, resize_resolution)
+        frame = frame.astype('float32') / 255.0
+        frame = np.expand_dims(frame, axis=-1)
+        frame = np.expand_dims(frame, axis=0)
 
-        print("processed photo: ", self.f.shape)
+        print("processed photo: ", frame.shape)
+
+        return frame
 
 class UI(tk.Tk):
     def __init__(self, camera: cv.VideoCapture):
@@ -102,7 +123,7 @@ class UI(tk.Tk):
         self.label = ASLLabel(self); self.label.grid(column=0, row=0, columnspan=3)
 
         self.camera_feed()
-        self.interface = Interface(self, self.camera.read())
+        self.interface = Interface(self, self.camera)
         self.interface.grid(column=0, row=1, columnspan=3)
         
 
